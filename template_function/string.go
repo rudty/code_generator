@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+// ToString 값을 문자열로 변환합니다
+func ToString(v interface{}) string {
+	return Join(",", v)
+}
+
 // Repeat 인자로 받은 각체 만큼 반복합니다
 // 숫자가 들어왔을때는 숫자를 해당 숫자만큼 반복하고
 // 컬렉션이 들어왔을때는 컬렉션의 길이만큼 반복합니다
@@ -65,54 +70,6 @@ func Join(sep string, v interface{}) string {
 	return b.String()
 }
 
-// RemoveLast 마지막 원소를 제거하고 값을 문자열로 만들어서 반환합니다
-func RemoveLast(v interface{}) string {
-	r := reflect.ValueOf(v)
-	l := r.Len()
-	if l == 0 {
-		return ""
-	}
-
-	switch r.Kind() {
-	case reflect.String:
-		s := r.String()
-		return s[:l-1]
-	case reflect.Array,
-		reflect.Slice:
-		b := strings.Builder{}
-		for i := 0; i < l-1; i++ {
-			e := r.Index(i).Interface()
-			b.WriteString(fmt.Sprint(e))
-		}
-		return b.String()
-	}
-	return ""
-}
-
-// RemoveLast 마지막 원소를 제거하고 값을 문자열로 만들어서 반환합니다
-func RemoveFirst(v interface{}) string {
-	r := reflect.ValueOf(v)
-	l := r.Len()
-	if l == 0 {
-		return ""
-	}
-
-	switch r.Kind() {
-	case reflect.String:
-		s := r.String()
-		return s[1:]
-	case reflect.Array,
-		reflect.Slice:
-		b := strings.Builder{}
-		for i := 1; i < l; i++ {
-			e := r.Index(i).Interface()
-			b.WriteString(fmt.Sprint(e))
-		}
-		return b.String()
-	}
-	return ""
-}
-
 // Concat 인자로 들어온 값들을 모두 더합니다
 func Concat(v ...interface{}) string {
 	return Join("", v)
@@ -154,7 +111,7 @@ func removeUnderLineInternal(b *strings.Builder, name string) string {
 }
 
 func ToPascal(v interface{}) string {
-	name := Join(",", v)
+	name := ToString(v)
 	if len(name) == 0 {
 		return ""
 	}
@@ -167,7 +124,7 @@ func ToPascal(v interface{}) string {
 }
 
 func ToCamel(v interface{}) string {
-	name := Join(",", v)
+	name := ToString(v)
 	if len(name) == 0 {
 		return ""
 	}
@@ -180,7 +137,7 @@ func ToCamel(v interface{}) string {
 }
 
 func ToSnake(v interface{}) string {
-	name := Join(",", v)
+	name := ToString(v)
 	if len(name) == 0 {
 		return ""
 	}
@@ -199,4 +156,40 @@ func ToSnake(v interface{}) string {
 	}
 
 	return builder.String()
+}
+
+// Contains 입력받은 인자를 문자열로 변환한뒤 해당 문자열이 포함되었는지 검사합니다
+func Contains(sub interface{}, v interface{}) bool {
+	substr := ToString(sub)
+	str := ToString(v)
+	return strings.Contains(str, substr)
+}
+
+// ContainsThen [(비교, 반환)..., 대상 문자열] 을 입력받고
+// 해당 문자열을 가지고 있다면 쌍을 반환합니다.
+// 값이 문자열이 아니면 모두 문자열로 변경 후 비교를 수행합니다
+func ContainsThen(v ...interface{}) string {
+	l := len(v)
+
+	if l == 0 {
+		return ""
+	}
+
+	if l == 1 {
+		return ToString(v[0])
+	}
+
+	if l%2 == 0 {
+		panic("ContainsThen (comp, return)... , str")
+	}
+
+	str := ToString(v[l-1])
+	v = v[:l-1]
+	for i := 0; i < len(v); i++ {
+		if Contains(v[i], str) {
+			ret := ToString(v[i+1])
+			return ret
+		}
+	}
+	panic("no matching value")
 }

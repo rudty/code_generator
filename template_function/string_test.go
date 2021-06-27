@@ -62,34 +62,6 @@ func TestJoinMap(t *testing.T) {
 	}
 }
 
-func TestRemoveLast(t *testing.T) {
-	a := RemoveLast("12345")
-	if a != "1234" {
-		t.Error("1234/" + a)
-	}
-}
-
-func TestRemoveLastSlice(t *testing.T) {
-	a := RemoveLast([]int{100, 200, 300, 400, 500})
-	if a != "100200300400" {
-		t.Error("100200300400/" + a)
-	}
-}
-
-func TestRemoveFirst(t *testing.T) {
-	a := RemoveFirst("12345")
-	if a != "2345" {
-		t.Error("2345/" + a)
-	}
-}
-
-func TestRemoveFirstSlice(t *testing.T) {
-	a := RemoveFirst([]int{100, 200, 300, 400, 500})
-	if a != "200300400500" {
-		t.Error("200300400500/" + a)
-	}
-}
-
 func Test_to_snake_1(t *testing.T) {
 	c := ToSnake("HelloWorld")
 	if c != "hello_world" {
