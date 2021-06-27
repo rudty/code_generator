@@ -41,20 +41,26 @@ func Join(sep string, v interface{}) string {
 		reflect.Slice:
 		l := r.Len()
 		for i := 0; i < l; i++ {
+			if i > 0 {
+				b.WriteString(sep)
+			}
 			e := r.Index(i).Interface()
 			b.WriteString(fmt.Sprint(e))
-			b.WriteString(sep)
 		}
 	case reflect.Map:
 		iter := r.MapRange()
-		for iter.Next() {
+		for i := 0; iter.Next(); i++ {
 			mk := iter.Key().Interface()
 			mv := iter.Value().Interface()
+			if i > 0 {
+				b.WriteString(sep)
+			}
 			b.WriteString(fmt.Sprint(mk))
 			b.WriteString(sep)
 			b.WriteString(fmt.Sprint(mv))
-			b.WriteString(sep)
 		}
+	case reflect.String:
+		return v.(string)
 	}
 	return b.String()
 }
@@ -105,4 +111,92 @@ func RemoveFirst(v interface{}) string {
 		return b.String()
 	}
 	return ""
+}
+
+// Concat 인자로 들어온 값들을 모두 더합니다
+func Concat(v ...interface{}) string {
+	return Join("", v)
+}
+
+func toUpperByte(c byte) byte {
+	if 'a' <= c && c <= 'z' {
+		c -= 'a' - 'A'
+	}
+	return c
+}
+
+func toLowerByte(c byte) byte {
+	if 'A' <= c && c <= 'Z' {
+		c += 'a' - 'A'
+	}
+	return c
+}
+
+func removeUnderLineInternal(b *strings.Builder, name string) string {
+	toUpper := false
+
+	for i := 1; i < len(name); i++ {
+		switch name[i] {
+		case 45: // '-'
+		case 95: // '_'
+			toUpper = true
+		default:
+			elem := name[i]
+			if toUpper {
+				elem = toUpperByte(elem)
+				toUpper = false
+			}
+			b.WriteByte(elem)
+		}
+	}
+
+	return b.String()
+}
+
+func ToPascal(v interface{}) string {
+	name := Join(",", v)
+	if len(name) == 0 {
+		return ""
+	}
+
+	b := strings.Builder{}
+	firstChar := toUpperByte(name[0])
+	b.WriteByte(firstChar)
+
+	return removeUnderLineInternal(&b, name)
+}
+
+func ToCamel(v interface{}) string {
+	name := Join(",", v)
+	if len(name) == 0 {
+		return ""
+	}
+
+	b := strings.Builder{}
+	firstChar := toLowerByte(name[0])
+	b.WriteByte(firstChar)
+
+	return removeUnderLineInternal(&b, name)
+}
+
+func ToSnake(v interface{}) string {
+	name := Join(",", v)
+	if len(name) == 0 {
+		return ""
+	}
+
+	builder := strings.Builder{}
+	firstChar := toLowerByte(name[0])
+	builder.WriteByte(firstChar)
+
+	for i := 1; i < len(name); i++ {
+		if 'A' <= name[i] && name[i] <= 'Z' {
+			builder.WriteByte(95)
+			builder.WriteByte(toLowerByte(name[i]))
+		} else {
+			builder.WriteByte(name[i])
+		}
+	}
+
+	return builder.String()
 }
