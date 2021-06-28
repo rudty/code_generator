@@ -193,3 +193,8 @@ func ContainsThen(v ...interface{}) string {
 	}
 	panic("no matching value")
 }
+
+// Space 지정한 숫자만큼 공백을 추가합니다
+func Space(v int) string {
+	return strings.Repeat(" ", v)
+}

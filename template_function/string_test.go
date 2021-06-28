@@ -145,3 +145,23 @@ func TestToCamel4(t *testing.T) {
 		t.Error("hELLOWORLD/" + c)
 	}
 }
+
+func TestSpace0(t *testing.T) {
+	s := Space(0)
+	if s != "" {
+		t.Error("space 0")
+	}
+}
+
+func TestSpace2(t *testing.T) {
+	s := Space(2)
+	if s != "  " {
+		t.Error("space 2")
+	}
+}
+func TestSpace4(t *testing.T) {
+	s := Space(4)
+	if s != "    " {
+		t.Error("space 4")
+	}
+}
