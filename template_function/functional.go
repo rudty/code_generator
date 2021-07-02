@@ -114,15 +114,6 @@ func RemoveFirst(v interface{}) interface{} {
 func mapCallMapInternal(callFunction, mapKey, mapValue reflect.Value, callArgs []reflect.Value) (callResult []reflect.Value) {
 	functionType := callFunction.Type()
 
-	a := callFunction.Interface()
-	_ = a
-	b := mapValue.Interface()
-	_ = b
-	c := functionType.NumIn()
-	_ = c
-	d := len(callArgs)
-	_ = d
-
 	switch functionType.NumIn() {
 	case len(callArgs):
 		callResult = callFunction.Call(callArgs)
