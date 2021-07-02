@@ -1,6 +1,7 @@
 package templatefunction
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -110,60 +111,100 @@ func RemoveFirst(v interface{}) interface{} {
 	panic("not support type")
 }
 
+func mapCallMapInternal(callFunction, mapKey, mapValue reflect.Value, callArgs []reflect.Value) (callResult []reflect.Value) {
+	functionType := callFunction.Type()
+
+	a := callFunction.Interface()
+	_ = a
+	b := mapValue.Interface()
+	_ = b
+	c := functionType.NumIn()
+	_ = c
+	d := len(callArgs)
+	_ = d
+
+	switch functionType.NumIn() {
+	case len(callArgs):
+		callResult = callFunction.Call(callArgs)
+	case len(callArgs) + 1:
+		callResult = callFunction.Call(append(callArgs, mapValue))
+	case len(callArgs) + 2:
+		callResult = callFunction.Call(append(callArgs, mapKey, mapValue))
+	case 0:
+		callResult = callFunction.Call([]reflect.Value{})
+	case 1:
+		callResult = callFunction.Call([]reflect.Value{mapValue})
+	case 2:
+		callResult = callFunction.Call([]reflect.Value{mapKey, mapValue})
+	default:
+		panic(fmt.Sprint("unknown in ", functionType.NumIn()))
+	}
+	return
+}
+
+func mapApply(
+	callFunction reflect.Value,
+	iter collectionIterable,
+	apply wrapperCollection,
+	callArgs []reflect.Value) {
+	for iter.Next() {
+		k := iter.Key()
+		v := iter.Value()
+		callResult := mapCallMapInternal(callFunction, k, v, callArgs)
+		apply.Add(callResult)
+	}
+}
+
 // Map 함수와 컬렉션을 인자로 받고 각 컬렉션의 원소에 대해서
 // 함수를 호출한 값을 새로운 slice를 만들어서 반환합니다.
-func Map(fn interface{}, collection interface{}) interface{} {
-	f := reflect.ValueOf(fn)
-	r := reflect.ValueOf(collection)
-
-	if f.Kind() == reflect.String {
-		f = reflect.ValueOf(funcMap[fn.(string)])
+func Map(fn interface{}, args ...interface{}) interface{} {
+	argsLength := len(args)
+	if argsLength < 0 {
+		panic("Map must args > 0")
 	}
 
-	switch r.Kind() {
+	callFunction := reflect.ValueOf(fn)
+	if callFunction.Kind() == reflect.String {
+		callFunction = reflect.ValueOf(funcMap[fn.(string)])
+	}
+	collection := reflect.ValueOf(args[argsLength-1])
+	callArgs := make([]reflect.Value, argsLength-1)
+	for i := 0; i < argsLength-1; i++ {
+		callArgs[i] = reflect.ValueOf(args[i])
+	}
+
+	functionType := callFunction.Type()
+
+	var iter collectionIterable
+	var apply wrapperCollection
+	var len = collection.Len()
+
+	switch collection.Kind() {
+	default:
+		return callFunction.Call([]reflect.Value{collection})
 	case reflect.Map:
-		l := r.Len()
-		iter := r.MapRange()
-		functionType := f.Type()
-		if functionType.NumOut() == 2 {
-			s := make(map[interface{}]interface{})
-			for iter.Next() {
-				key := iter.Key()
-				val := iter.Value()
-				mapResult := f.Call([]reflect.Value{key, val})
-				s[mapResult[0].Interface()] = mapResult[1].Interface()
-			}
-			return s
-		} else if functionType.NumOut() == 1 {
-			s := make([]interface{}, l)
-			for i := 0; iter.Next(); i++ {
-				key := iter.Key()
-				val := iter.Value()
-				var callResult []reflect.Value
-				switch functionType.NumIn() {
-				case 0:
-					callResult = f.Call([]reflect.Value{})
-				case 1:
-					callResult = f.Call([]reflect.Value{val})
-				case 2:
-					callResult = f.Call([]reflect.Value{key, val})
-				}
-				s[i] = callResult[0].Interface()
-			}
-			return s
-		} else {
-			panic("must return")
-		}
+		iter = collection.MapRange()
 	case reflect.Array,
 		reflect.Slice:
-		l := r.Len()
-		s := make([]interface{}, l)
-		for i := 0; i < l; i++ {
-			e := r.Index(i)
-			mapResult := f.Call([]reflect.Value{e})
-			s[i] = mapResult[0].Interface()
-		}
-		return s
+		iter = newReflectSliceKeyValueIterator(collection)
 	}
-	return f.Call([]reflect.Value{r})
+
+	numOut := functionType.NumOut()
+	switch numOut {
+	default:
+		panic(fmt.Sprint("must return 1 or 2 ", numOut))
+	case 1:
+		apply = &sliceWrapper{slice: make([]interface{}, 0, len)}
+	case 2:
+		apply = &mapWrapper{m: make(map[interface{}]interface{}, len)}
+	}
+
+	for i := 0; iter.Next(); i++ {
+		key := iter.Key()
+		val := iter.Value()
+		callResult := mapCallMapInternal(callFunction, key, val, callArgs)
+		apply.Add(callResult)
+	}
+
+	return apply.Get()
 }

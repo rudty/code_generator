@@ -101,3 +101,40 @@ func TestRemoveFirstSlice(t *testing.T) {
 		t.Error("200300400500/" + fmt.Sprint(a))
 	}
 }
+
+func TestMapArrayArg1(t *testing.T) {
+	a := Map(fmt.Sprint, []int{1, 2, 3})
+	v := reflect.ValueOf(a)
+	if v.Len() != 3 {
+		t.Error("length must 3")
+	}
+	if v.Index(0).Interface().(string) != "1" {
+		t.Error("1")
+	}
+	if v.Index(1).Interface().(string) != "2" {
+		t.Error("2")
+	}
+	if v.Index(2).Interface().(string) != "3" {
+		t.Error("3")
+	}
+}
+func TestMapArrayArg2(t *testing.T) {
+	a := Map(fmt.Sprintf, "%d", []int{1, 2, 3})
+	v := reflect.ValueOf(a)
+	if v.Len() != 3 {
+		t.Error("length must 3")
+	}
+	if v.Index(0).Interface().(string) != "1" {
+		t.Error("1")
+	}
+	if v.Index(1).Interface().(string) != "2" {
+		t.Error("2")
+	}
+	if v.Index(2).Interface().(string) != "3" {
+		t.Error("3")
+	}
+}
+
+func TestMapMapArg1(t *testing.T) {
+
+}
