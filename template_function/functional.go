@@ -111,41 +111,6 @@ func RemoveFirst(v interface{}) interface{} {
 	panic("not support type")
 }
 
-func mapCallMapInternal(callFunction, mapKey, mapValue reflect.Value, callArgs []reflect.Value) (callResult []reflect.Value) {
-	functionType := callFunction.Type()
-
-	switch functionType.NumIn() {
-	case len(callArgs):
-		callResult = callFunction.Call(callArgs)
-	case len(callArgs) + 1:
-		callResult = callFunction.Call(append(callArgs, mapValue))
-	case len(callArgs) + 2:
-		callResult = callFunction.Call(append(callArgs, mapKey, mapValue))
-	case 0:
-		callResult = callFunction.Call([]reflect.Value{})
-	case 1:
-		callResult = callFunction.Call([]reflect.Value{mapValue})
-	case 2:
-		callResult = callFunction.Call([]reflect.Value{mapKey, mapValue})
-	default:
-		panic(fmt.Sprint("unknown in ", functionType.NumIn()))
-	}
-	return
-}
-
-func mapApply(
-	callFunction reflect.Value,
-	iter collectionIterable,
-	apply wrapperCollection,
-	callArgs []reflect.Value) {
-	for iter.Next() {
-		k := iter.Key()
-		v := iter.Value()
-		callResult := mapCallMapInternal(callFunction, k, v, callArgs)
-		apply.Add(callResult)
-	}
-}
-
 // Map 함수와 컬렉션을 인자로 받고 각 컬렉션의 원소에 대해서
 // 함수를 호출한 값을 새로운 slice를 만들어서 반환합니다.
 func Map(fn interface{}, args ...interface{}) interface{} {
@@ -158,9 +123,10 @@ func Map(fn interface{}, args ...interface{}) interface{} {
 	if callFunction.Kind() == reflect.String {
 		callFunction = reflect.ValueOf(funcMap[fn.(string)])
 	}
-	collection := reflect.ValueOf(args[argsLength-1])
-	callArgs := make([]reflect.Value, argsLength-1)
-	for i := 0; i < argsLength-1; i++ {
+	inputArgsCount := argsLength - 1
+	collection := reflect.ValueOf(args[inputArgsCount])
+	callArgs := make([]reflect.Value, inputArgsCount)
+	for i := 0; i < inputArgsCount; i++ {
 		callArgs[i] = reflect.ValueOf(args[i])
 	}
 
@@ -190,10 +156,27 @@ func Map(fn interface{}, args ...interface{}) interface{} {
 		apply = &mapWrapper{m: make(map[interface{}]interface{}, len)}
 	}
 
+	numIn := functionType.NumIn()
 	for i := 0; iter.Next(); i++ {
 		key := iter.Key()
 		val := iter.Value()
-		callResult := mapCallMapInternal(callFunction, key, val, callArgs)
+		var callResult []reflect.Value
+		switch numIn {
+		case inputArgsCount:
+			callResult = callFunction.Call(callArgs)
+		case inputArgsCount + 1:
+			callResult = callFunction.Call(append(callArgs, val))
+		case inputArgsCount + 2:
+			callResult = callFunction.Call(append(callArgs, key, val))
+		case 0:
+			callResult = callFunction.Call([]reflect.Value{})
+		case 1:
+			callResult = callFunction.Call([]reflect.Value{val})
+		case 2:
+			callResult = callFunction.Call([]reflect.Value{key, val})
+		default:
+			panic(fmt.Sprint("unknown in ", functionType.NumIn()))
+		}
 		apply.Add(callResult)
 	}
 

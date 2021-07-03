@@ -135,6 +135,59 @@ func TestMapArrayArg2(t *testing.T) {
 	}
 }
 
-func TestMapMapArg1(t *testing.T) {
+func TestMapMapArg0Return1(t *testing.T) {
+	f := func(a, b int) int {
+		return a + b
+	}
 
+	m := map[int]int{
+		1: 1,
+		2: 2,
+		3: 3,
+	}
+	a := Map(f, m)
+
+	v := reflect.ValueOf(a)
+	if v.Len() != 3 {
+		t.Error("length must 3")
+	}
+	if v.Index(0).Interface().(int) != 2 {
+		t.Error("2")
+	}
+	if v.Index(1).Interface().(int) != 4 {
+		t.Error("4")
+	}
+	if v.Index(2).Interface().(int) != 6 {
+		t.Error("6")
+	}
+}
+
+func TestMapMapArg0Return2(t *testing.T) {
+	f := func(a, b int) (int, int) {
+		return b, a
+	}
+	m := map[int]int{
+		1: 4,
+		2: 5,
+		3: 6,
+	}
+	a := Map(f, m)
+
+	v := reflect.ValueOf(a)
+	if v.Len() != 3 {
+		t.Error("length must 3")
+	}
+
+	e1 := v.MapIndex(reflect.ValueOf(4))
+	if e1.Interface().(int) != 1 {
+		t.Error("1")
+	}
+	e2 := v.MapIndex(reflect.ValueOf(5))
+	if e2.Interface().(int) != 2 {
+		t.Error("2")
+	}
+	e3 := v.MapIndex(reflect.ValueOf(6))
+	if e3.Interface().(int) != 3 {
+		t.Error("3")
+	}
 }
