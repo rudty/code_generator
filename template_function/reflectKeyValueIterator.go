@@ -12,35 +12,86 @@ type collectionIterable interface {
 	Value() reflect.Value
 }
 
-type wrapperCollection interface {
-	Add(r []reflect.Value)
+type transformReducer interface {
+	Add(returnValue []reflect.Value, key, val reflect.Value)
 	Get() interface{}
 }
 
-type sliceWrapper struct {
+type mapSliceReducer struct {
 	slice []interface{}
 }
 
-func (s *sliceWrapper) Add(r []reflect.Value) {
-	v := r[0].Interface()
+func (s *mapSliceReducer) Add(returnValue []reflect.Value, key, val reflect.Value) {
+	v := returnValue[0].Interface()
 	s.slice = append(s.slice, v)
 }
 
-func (s *sliceWrapper) Get() interface{} {
+func (s *mapSliceReducer) Get() interface{} {
 	return s.slice
 }
 
-type mapWrapper struct {
+type mapMapReducer struct {
 	m map[interface{}]interface{}
 }
 
-func (s *mapWrapper) Add(r []reflect.Value) {
-	k := r[0].Interface()
-	v := r[1].Interface()
+func (s *mapMapReducer) Add(returnValue []reflect.Value, key, val reflect.Value) {
+	k := returnValue[0].Interface()
+	v := returnValue[1].Interface()
 	s.m[k] = v
 }
 
-func (s *mapWrapper) Get() interface{} {
+func (s *mapMapReducer) Get() interface{} {
+	return s.m
+}
+
+func isOk(ret []reflect.Value) bool {
+	if len(ret) == 0 {
+		return false
+	}
+	r := ret[0].Interface()
+	if b, ok := r.(bool); ok {
+		return b
+	}
+
+	if i, ok := r.(int); ok {
+		return i != 0
+	}
+
+	if s, ok := r.(string); ok {
+		return len(s) > 0 && s != "false" && s != "0"
+	}
+
+	return false
+}
+
+type filterSliceReducer struct {
+	slice []interface{}
+}
+
+func (s *filterSliceReducer) Add(returnValue []reflect.Value, key, val reflect.Value) {
+	if isOk(returnValue) {
+		v := val.Interface()
+		s.slice = append(s.slice, v)
+	}
+}
+
+func (s *filterSliceReducer) Get() interface{} {
+	return s.slice
+}
+
+type filterMapReducer struct {
+	m map[interface{}]interface{}
+}
+
+func (s *filterMapReducer) Add(returnValue []reflect.Value, key, val reflect.Value) {
+	if isOk(returnValue) {
+		k := key.Interface()
+		v := val.Interface()
+		s.m[k] = v
+	}
+}
+
+func (s *filterMapReducer) Get() interface{} {
 	return s.m
 }
 
@@ -65,7 +116,7 @@ func (r *reflectSliceKeyValueIterator) Next() bool {
 }
 
 func (r *reflectSliceKeyValueIterator) Key() reflect.Value {
-	return reflect.Value{}
+	return reflect.ValueOf(r.i)
 }
 
 func (r *reflectSliceKeyValueIterator) Value() reflect.Value {

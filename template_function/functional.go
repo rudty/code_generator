@@ -5,6 +5,22 @@ import (
 	"reflect"
 )
 
+func getFunction(f interface{}) interface{} {
+	rf := reflect.ValueOf(f)
+
+	switch rf.Kind() {
+	case reflect.Func:
+		return f
+	case reflect.String:
+		strf := f.(string)
+		if v, ok := funcMap[strf]; ok {
+			return v
+		}
+	}
+
+	panic(fmt.Sprint("?", rf.Kind(), f))
+}
+
 // Select 이름과 값을 입력받고
 // 1. 만약 v가 구조체, map 일때는 인자로 받은 이름을 가진 원소를 가져옵니다.
 // map은 키가 string 일때만 지원합니다.
@@ -111,18 +127,13 @@ func RemoveFirst(v interface{}) interface{} {
 	panic("not support type")
 }
 
-// Map 함수와 컬렉션을 인자로 받고 각 컬렉션의 원소에 대해서
-// 함수를 호출한 값을 새로운 slice를 만들어서 반환합니다.
-func Map(fn interface{}, args ...interface{}) interface{} {
+func transform(transformFunction func(functionType reflect.Type, collection reflect.Value) transformReducer, fn interface{}, args ...interface{}) interface{} {
 	argsLength := len(args)
 	if argsLength < 0 {
 		panic("Map must args > 0")
 	}
 
-	callFunction := reflect.ValueOf(fn)
-	if callFunction.Kind() == reflect.String {
-		callFunction = reflect.ValueOf(funcMap[fn.(string)])
-	}
+	callFunction := reflect.ValueOf(getFunction(fn))
 	inputArgsCount := argsLength - 1
 	collection := reflect.ValueOf(args[inputArgsCount])
 	callArgs := make([]reflect.Value, inputArgsCount)
@@ -133,8 +144,7 @@ func Map(fn interface{}, args ...interface{}) interface{} {
 	functionType := callFunction.Type()
 
 	var iter collectionIterable
-	var apply wrapperCollection
-	var len = collection.Len()
+	var reducer transformReducer = transformFunction(functionType, collection)
 
 	switch collection.Kind() {
 	default:
@@ -146,18 +156,8 @@ func Map(fn interface{}, args ...interface{}) interface{} {
 		iter = newReflectSliceKeyValueIterator(collection)
 	}
 
-	numOut := functionType.NumOut()
-	switch numOut {
-	default:
-		panic(fmt.Sprint("must return 1 or 2 ", numOut))
-	case 1:
-		apply = &sliceWrapper{slice: make([]interface{}, 0, len)}
-	case 2:
-		apply = &mapWrapper{m: make(map[interface{}]interface{}, len)}
-	}
-
 	numIn := functionType.NumIn()
-	for i := 0; iter.Next(); i++ {
+	for iter.Next() {
 		key := iter.Key()
 		val := iter.Value()
 		var callResult []reflect.Value
@@ -177,8 +177,44 @@ func Map(fn interface{}, args ...interface{}) interface{} {
 		default:
 			panic(fmt.Sprint("unknown in ", functionType.NumIn()))
 		}
-		apply.Add(callResult)
+		reducer.Add(callResult, key, val)
 	}
 
-	return apply.Get()
+	return reducer.Get()
+}
+
+// Map 함수와 컬렉션을 인자로 받고 각 컬렉션의 원소에 대해서
+// 함수를 호출한 값을 새로운 slice를 만들어서 반환합니다.
+func Map(fn interface{}, args ...interface{}) interface{} {
+	r := func(functionType reflect.Type, collection reflect.Value) transformReducer {
+		numOut := functionType.NumOut()
+		collectionSize := collection.Len()
+		switch numOut {
+		default:
+			panic(fmt.Sprint("must return 1 or 2 ", numOut))
+		case 1:
+			return &mapSliceReducer{slice: make([]interface{}, 0, collectionSize)}
+		case 2:
+			return &mapMapReducer{m: make(map[interface{}]interface{}, collectionSize)}
+		}
+	}
+	return transform(r, fn, args...)
+}
+
+// Filter 함수와 컬렉션을 인자로 받고 각 컬렉션의 원소에 대해서
+// 함수를 호출한 값을 새로운 slice를 만들어서 반환합니다.
+func Filter(fn interface{}, args ...interface{}) interface{} {
+	r := func(functionType reflect.Type, collection reflect.Value) transformReducer {
+		collectionSize := collection.Len()
+		switch collection.Kind() {
+		default:
+			panic(fmt.Sprint("cannot ", collection.Kind()))
+		case reflect.Array,
+			reflect.Slice:
+			return &filterSliceReducer{slice: make([]interface{}, 0, collectionSize)}
+		case reflect.Map:
+			return &filterMapReducer{m: make(map[interface{}]interface{}, collectionSize)}
+		}
+	}
+	return transform(r, fn, args...)
 }
