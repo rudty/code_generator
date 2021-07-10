@@ -54,28 +54,6 @@ exports.toCamel = (v) => {
 };
 
 
-// func ToSnake(v interface{}) string {
-// 	name := ToString(v)
-// 	if len(name) == 0 {
-// 		return ""
-// 	}
-
-// 	builder := strings.Builder{}
-// 	firstChar := toLowerByte(name[0])
-// 	builder.WriteByte(firstChar)
-
-// 	for i := 1; i < len(name); i++ {
-// 		if 'A' <= name[i] && name[i] <= 'Z' {
-// 			builder.WriteByte(95)
-// 			builder.WriteByte(toLowerByte(name[i]))
-// 		} else {
-// 			builder.WriteByte(name[i])
-// 		}
-// 	}
-
-// 	return builder.String()
-// }
-
 exports.toSnake = (v) => {
     const name = toString(v);
     if (name.length === 0) {
