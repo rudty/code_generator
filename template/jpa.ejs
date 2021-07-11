@@ -1,0 +1,28 @@
+package hello;
+
+import javax.persistence.*;
+<%
+function javaType(dbType) {
+    if (dbType.includes("date")) return "java.time.LocalDateTime";
+    if (dbType.includes("int")) return "int";
+    return "String";
+}
+%>
+@Entity
+public class <%= F.toPascal(table.name) %> {
+    <%_ for (const column of table.columns) { _%>
+        <%_ if(column === table.pkColumn) {_%><%="    @Id"%><% } %>
+    @Column(name="<%=column.name%>")
+    private <%=javaType(column.type)%> <%=F.toCamel(column.name)%>; 
+    <%_ } _%>
+
+    <% for (const column of table.columns) { %>
+        public <%=javaType(column.type)%> get<%=F.toPascal(column.name)%>() {
+            return this.<%=F.toCamel(column.name)%>;
+        }
+    
+        public void set<%=F.toPascal(column.name)%>(<%=javaType(column.type)%> v) {
+            this.<%=F.toCamel(column.name)%> = v;
+        }
+    <%_ } _%>
+}
