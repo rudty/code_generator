@@ -1,14 +1,14 @@
-package hello;
-
+<% if (typeof packageName !== "undefined") { %>package <%= packageName %>;<%_ } _%>
+import java.time.LocalDateTime;
 import javax.persistence.*;
 <%
 function javaType(dbType) {
-    if (dbType.includes("date")) return "java.time.LocalDateTime";
+    if (dbType.includes("date")) return "LocalDateTime";
     if (dbType.includes("int")) return "int";
     return "String";
 }
 %>
-@Entity
+@Entity(name="<%= table.name %>")
 public class <%= F.toPascal(table.name) %> {
     <%_ for (const column of table.columns) { _%>
         <%_ if(column === table.pkColumn) {_%><%="    @Id"%><% } %>
