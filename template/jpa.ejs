@@ -1,4 +1,5 @@
-<% if (typeof packageName !== "undefined") { %>package <%= packageName %>;<%_ } _%>
+<% if (typeof packageName !== "undefined") { %>package <%= packageName %>;<% } %>
+
 import java.time.LocalDateTime;
 import javax.persistence.*;
 <%
@@ -12,17 +13,17 @@ function javaType(dbType) {
 public class <%= F.toPascal(table.name) %> {
     <%_ for (const column of table.columns) { _%>
         <%_ if(column === table.pkColumn) {_%><%="    @Id"%><% } %>
-    @Column(name="<%=column.name%>")
+    @Column(name="<%=column.name%>"<%= (column.isnull ? ", nullable = true" : "") %>)
     private <%=javaType(column.type)%> <%=F.toCamel(column.name)%>; 
     <%_ } _%>
 
     <% for (const column of table.columns) { %>
-        public <%=javaType(column.type)%> get<%=F.toPascal(column.name)%>() {
-            return this.<%=F.toCamel(column.name)%>;
-        }
-    
-        public void set<%=F.toPascal(column.name)%>(<%=javaType(column.type)%> v) {
-            this.<%=F.toCamel(column.name)%> = v;
-        }
+    public <%=javaType(column.type)%> get<%=F.toPascal(column.name)%>() {
+        return this.<%=F.toCamel(column.name)%>;
+    }
+
+    public void set<%=F.toPascal(column.name)%>(<%=javaType(column.type)%> v) {
+        this.<%=F.toCamel(column.name)%> = v;
+    }
     <%_ } _%>
 }
