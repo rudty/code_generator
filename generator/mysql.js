@@ -43,6 +43,7 @@ exports.get = async (connection) => {
 
         const tables = [];
         const tableNames = await getTableNames(db.config.database);
+        
         for (const tableName of tableNames) {
             const columns = await getColumns(tableName);
             
@@ -59,9 +60,9 @@ exports.get = async (connection) => {
             }
             
             tables.push(table);
-
-            return tables;
         }
+
+        return tables;
     } finally {
         if (db) {
             db.destroy();
