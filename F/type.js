@@ -2,19 +2,30 @@
 
 const toJavaType = (t) => {
     if (t) {
-        switch (t) {
-            case "date":
-                return "LocalDateTime";
-            case "int32":
-                return "int"
-            case "int64":
-                return "long";
-            case "float32":
-                return "float";
-            case "float64":
-                return "double";
-            case "string":
-                return "String";
+        t = t.toLowerCase();
+        if (t.includes("date")) {
+            return "LocalDateTime";
+        }
+        if (t.includes("byte") || t.includes("int8")) {
+            return "byte";
+        }
+        if (t.includes("smallint") || t.includes("int16")) {
+            return "short";
+        }
+        if (t.includes("int64") || t.includes("long")) {
+            return "long";
+        }
+        if (t.includes("int32") || t.includes("int")) {
+            return "int"
+        }
+        if (t.includes("float64") || t.includes("double")) {
+            return "double";
+        }
+        if (t.includes("float32") || t.includes("float")) {
+            return "float";
+        }
+        if (t.includes("string") || t.includes("varchar")) {
+            return "String";
         }
     }
     return t;
@@ -24,16 +35,19 @@ exports.toJavaType = toJavaType;
 
 exports.javaParseString = (t, value) => {
     const javaType = toJavaType(t);
-    switch (javaType) {
-    case "int":
+    if (javaType.includes("int")) {
         return "Integer.parseInt(" + value + ")";
-    case "long":
+    }
+    if (javaType.includes("long")) {
         return "Long.parseLong(" + value + ")";
-    case "float":
+    }
+    if (javaType.includes("float")) {
         return "Float.parseFloat(" + value + ")";
-    case "double":
+    }
+    if (javaType.includes("double")) {
         return "Double.parseDouble(" + value + ")";
-    case "LocalDateTime":
+    }
+    if (javaType.includes("LocalDateTime")) {
         return "LocalDateTime.parse(" + value + ")";
     }
     return value;
