@@ -2,11 +2,9 @@
 
 const toJavaType = (t) => {
     if (t) {
-        if (t.includes("date")) {
-            return "LocalDateTime";
-        }
-
         switch (t) {
+            case "date":
+                return "LocalDateTime";
             case "int32":
                 return "int"
             case "int64":

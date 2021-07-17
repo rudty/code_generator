@@ -36,6 +36,7 @@ const isNumberRange = (v, min, max) => {
 const isInt32 = (dataset, index) => checkEach(dataset, index, (v) => isNumberRange(v, -2147483648, 2147483647));
 const isInt64 = (dataset, index) => checkEach(dataset, index, (v) => isNumberRange(v, -9223372036854775808, 9223372036854775807));
 const isFloat = (dataset, index) => checkEach(dataset, index, Number);
+const isDate = (dataset, index) => checkEach(dataset, index, (v) => !Number.isNaN(Date.parse(v)))
 const isBool = (dataset, index) => checkEach(dataset, index, (v) => {
     const upper = v.toUpperCase();
     if (upper === "true" || upper === "false") {
@@ -45,6 +46,10 @@ const isBool = (dataset, index) => checkEach(dataset, index, (v) => {
 });
 
 const getColumnType = (dataset, index) => {
+    if (isDate(dataset, index)) {
+        return "date";
+    }
+
     if (isInt32(dataset, index)) {
         return "int32";
     }
