@@ -1,0 +1,56 @@
+<% if (typeof packageName !== "undefined") { %>package <%= packageName %>;<% } %>
+
+import com.opencsv.*;
+import com.opencsv.exceptions.CsvException;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+<% const className = F.toPascal(csv.filename) %>
+public class <%= className %>  {
+
+    public static <%= className %>[] cache = null;
+
+    public final int header1;
+    public final String header2;
+    public final double header3;
+    public final int h4;
+
+    public <%= className %> (<%= csv.typeInfo.map(e => F.toJavaType(e.type) + " " + e.name) %>) {
+        <%_ for (const t of csv.typeInfo) { _%> 
+            <%= "this." + t.name + " = " + t.name + ";"%> 
+        <%_ } _%>
+    }
+
+    public static <%= className %>[] get() {
+        if (cache == null) {
+            try {
+                cache = readFromFile();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return cache;
+    }
+
+    public static <%= className %> [] readFromFile() throws FileNotFoundException, IOException, CsvException {
+        final String filePath = "<%= csv.filepath %>"; 
+        final int fromIndex = <%= csv.from + 1 %>;
+        final FileReader fileReader = new FileReader(filePath);
+        try (CSVReader csvReader = new CSVReader(fileReader)) {
+            List<String[]> csvData = csvReader.readAll();
+            <%= className %>[] data = new <%= className %>[csvData.size() - fromIndex];
+            for (int i = fromIndex, arrayIndex = 0; i < csvData.size(); ++i, ++arrayIndex) {
+                String[] row = csvData.get(i);
+                data[arrayIndex] = new <%= className %>(
+                    <%_ for (let i = 0; i < csv.typeInfo.length; ++i) { 
+                        const t = csv.typeInfo[i].type; _%>
+                    <%= (i > 0) ? "," : "" %><%= F.javaParseString(t, "row[" + i +"]") %>
+                    <%_ } %>
+                );
+            }
+            return data;
+        }
+    }
+}
