@@ -81,8 +81,8 @@ const getDefaultType = (dataset) => {
     return types;
 };
 
-exports.get = async (filePath, option) => {
-    const data = await readFile(filePath);
+exports.get = async (option) => {
+    const data = await readFile(option.filepath);
     
     if (!option) {
         option = {
@@ -93,10 +93,9 @@ exports.get = async (filePath, option) => {
 
     const dataset = await parser(data, option);
 
-    option.typeInfo = getDefaultType(dataset);
-    option.dataset = dataset;
-    option.filepath = filePath;
-    option.filename = path.basename(filePath, ".csv");
-    
-    return option;
+    option.type = getDefaultType(dataset);
+    option.filename = path.basename(option.filepath, ".csv");
+    dataset.info = option;
+
+    return [dataset];
 };

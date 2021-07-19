@@ -1,17 +1,17 @@
-<% if (typeof packageName !== "undefined") { %>package <%= packageName %>;<% } %>
+<% if (typeof option.javaPackage !== "undefined") { %>package <%= option.javaPackage %>;<% } %>
 
 import java.time.LocalDateTime;
 import javax.persistence.*;
 
-@Entity(name="<%= table.name %>")
-public class <%= F.toPascal(table.name) %> {
-    <%_ for (const column of table.columns) { _%>
-        <%_ if(column === table.pkColumn) {_%><%="    @Id"%><% } %>
+@Entity(name="<%= dataset.name %>")
+public class <%= F.toPascal(dataset.name) %> {
+    <%_ for (const column of dataset.columns) { _%>
+        <%_ if(column === dataset.pkColumn) {_%><%="    @Id"%><% } %>
     @Column(name="<%=column.name%>"<%= (column.isnull ? ", nullable = true" : "") %>)
     private <%=F.toJavaType(column.type)%> <%=F.toCamel(column.name)%>; 
     <%_ } _%>
 
-    <% for (const column of table.columns) { %>
+    <% for (const column of dataset.columns) { %>
     public <%=F.toJavaType(column.type)%> get<%=F.toPascal(column.name)%>() {
         return this.<%=F.toCamel(column.name)%>;
     }

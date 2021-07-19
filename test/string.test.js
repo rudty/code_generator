@@ -1,6 +1,4 @@
 "use strict";
-
-"use strict";
 const F = require("../F");
 const assert = require("assert");
 
