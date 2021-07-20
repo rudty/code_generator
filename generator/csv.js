@@ -7,6 +7,7 @@ const util = require("util");
 
 const parser = util.promisify(csv);
 const readFile = util.promisify(fs.readFile);
+const readDir = util.promisify(fs.readdir);
 
 const checkEach = (dataset, index, fn) => {
     for (let i = 1; i < dataset.length; ++i) {
@@ -46,9 +47,6 @@ const isBool = (dataset, index) => checkEach(dataset, index, (v) => {
 });
 
 const getColumnType = (dataset, index) => {
-    if (isDate(dataset, index)) {
-        return "date";
-    }
 
     if (isInt32(dataset, index)) {
         return "int32";
@@ -60,6 +58,10 @@ const getColumnType = (dataset, index) => {
 
     if (isFloat(dataset, index)) {
         return "float64";
+    }
+
+    if (isDate(dataset, index)) {
+        return "date";
     }
 
     if (isBool(dataset, index)) {
@@ -82,20 +84,29 @@ const getDefaultType = (dataset) => {
 };
 
 exports.get = async (option) => {
-    const data = await readFile(option.filepath);
-    
+    const csvDir = await readDir(option.csvDir);
+    const csvFiles = csvDir.filter(e => e.endsWith("csv"));
     if (!option) {
         option = {
             bom: true,
             from: 0,
         };
     }
+    const csvDataset = [];
+    for (const csvFileName of csvFiles) {
+        const filepath = path.join(option.csvDir, csvFileName);
+        const data = await readFile(filepath);
+        const dataset = await parser(data, option);
 
-    const dataset = await parser(data, option);
+        dataset.info = {
+            ...option,
+            filepath,
+            type: getDefaultType(dataset),
+            filename: path.basename(filepath, ".csv"),
+        };
 
-    option.type = getDefaultType(dataset);
-    option.filename = path.basename(option.filepath, ".csv");
-    dataset.info = option;
-
-    return [dataset];
+        csvDataset.push(dataset);
+    }
+    
+    return csvDataset;
 };

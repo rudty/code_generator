@@ -12,10 +12,9 @@ public class <%= className %>  {
 
     public static <%= className %>[] cache = null;
 
-    public final int header1;
-    public final String header2;
-    public final double header3;
-    public final int h4;
+    <%_ for (const e of dataset.info.type) { _%>
+        public final <%- F.toJavaType(e.type) %> <%- e.name %>;
+    <%_ } _%>
 
     public <%= className %> (<%= dataset.info.type.map(e => F.toJavaType(e.type) + " " + e.name) %>) {
         <%_ for (const t of dataset.info.type) { _%> 
