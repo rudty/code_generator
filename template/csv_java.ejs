@@ -34,7 +34,7 @@ public class <%= className %>  {
         return cache;
     }
 
-    public static <%= className %> [] readFromFile() throws FileNotFoundException, IOException, CsvException {
+    public static <%= className %>[] readFromFile() throws FileNotFoundException, IOException, CsvException {
         final String filePath = "<%= dataset.info.filepath %>"; 
         final int fromIndex = <%= (dataset.info.from || 0) + 1 %>;
         final FileReader fileReader = new FileReader(filePath);
