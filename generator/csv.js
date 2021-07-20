@@ -39,7 +39,7 @@ const isInt64 = (dataset, index) => checkEach(dataset, index, (v) => isNumberRan
 const isFloat = (dataset, index) => checkEach(dataset, index, Number);
 const isDate = (dataset, index) => checkEach(dataset, index, (v) => !Number.isNaN(Date.parse(v)))
 const isBool = (dataset, index) => checkEach(dataset, index, (v) => {
-    const upper = v.toUpperCase();
+    const upper = v.toLowerCase();
     if (upper === "true" || upper === "false") {
         return true;
     }
@@ -107,6 +107,6 @@ exports.get = async (option) => {
 
         csvDataset.push(dataset);
     }
-    
+
     return csvDataset;
 };
