@@ -34,7 +34,7 @@ public class <%= className %>  {
     }
 
     public static <%= className %>[] readFromFile() throws FileNotFoundException, IOException, CsvException {
-        final String filePath = "<%= dataset.info.filepath %>"; 
+        final String filePath = "<%= F.path.join(option.parseDir, dataset.info.filepath) %>"; 
         final int fromIndex = <%= (dataset.info.from || 0) + 1 %>;
         final FileReader fileReader = new FileReader(filePath);
         try (CSVReader csvReader = new CSVReader(fileReader)) {

@@ -50,6 +50,9 @@ exports.get = async (connection) => {
             const table = {
                 name: tableName,
                 columns: columns,
+                info: {
+                    filename: tableName,
+                },
             };
 
             const maybePkColumn = columns.filter(c => c.key.includes("PR"));
