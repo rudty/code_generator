@@ -1,0 +1,13 @@
+{
+    "run": "csv",
+    "module_option": {
+        "csvDir": "."
+    },
+    "template_option": {
+        "javaPackage": "hello",
+        "filepath": "./template/csv_java.ejs",
+        "outDir": "./out",
+        "outExt": "java",
+        "parseDir": ".."
+    }
+}
