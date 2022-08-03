@@ -15,7 +15,7 @@ const toJavaType = (t) => {
         if (t.includes("int64") || t.includes("long") || t.includes("bigint")) {
             return "long";
         }
-        if (t.includes("int32") || t.includes("int") || t.includes("enum")) {
+        if (t.includes("int32") || t.includes("int")) {
             return "int"
         }
         if (t.includes("float64") || t.includes("double")) {
@@ -24,7 +24,7 @@ const toJavaType = (t) => {
         if (t.includes("float32") || t.includes("float")) {
             return "float";
         }
-        if (t.includes("string") || t.includes("char") || t.includes("text")) {
+        if (t.includes("string") || t.includes("char") || t.includes("text") || t.includes("enum")) {
             return "String";
         }
     }
@@ -80,7 +80,7 @@ exports.toSharpReaderMethod = (t) => {
         if (t.includes("int64") || t.includes("long") || t.includes("bigint")) {
             return "GetInt64";
         }
-        if (t.includes("int32") || t.includes("int") || t.includes("enum")) {
+        if (t.includes("int32") || t.includes("int")) {
             return "GetInt32"
         }
         if (t.includes("float64") || t.includes("double")) {
@@ -89,7 +89,7 @@ exports.toSharpReaderMethod = (t) => {
         if (t.includes("float32") || t.includes("float")) {
             return "GetFloat";
         }
-        if (t.includes("string") || t.includes("char") || t.includes("text")) {
+        if (t.includes("string") || t.includes("char") || t.includes("text") || t.includes("enum")) {
             return "GetString";
         }
     }
