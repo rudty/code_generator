@@ -15,7 +15,7 @@ const toJavaType = (t) => {
         if (t.includes("int64") || t.includes("long") || t.includes("bigint")) {
             return "long";
         }
-        if (t.includes("int32") || t.includes("int")) {
+        if (t.includes("int32") || t.includes("int") || t.includes("enum")) {
             return "int"
         }
         if (t.includes("float64") || t.includes("double")) {
@@ -24,7 +24,7 @@ const toJavaType = (t) => {
         if (t.includes("float32") || t.includes("float")) {
             return "float";
         }
-        if (t.includes("string") || t.includes("varchar") || t.includes("text")) {
+        if (t.includes("string") || t.includes("char") || t.includes("text")) {
             return "String";
         }
     }
@@ -32,6 +32,18 @@ const toJavaType = (t) => {
 };
 
 exports.toJavaType = toJavaType;
+
+const toSharpType = (t) => {
+    if (t) {
+        t = t.toLowerCase();
+        if (t.includes("date")) {
+            return "DateTime";
+        }
+    }
+    return toJavaType(t);
+};
+
+exports.toSharpType = toSharpType;
 
 exports.javaParseString = (t, value) => {
     const javaType = toJavaType(t);
@@ -51,4 +63,35 @@ exports.javaParseString = (t, value) => {
         return "LocalDateTime.parse(" + value + ")";
     }
     return value;
+};
+
+exports.toSharpReaderMethod = (t) => {
+    if (t) {
+        t = t.toLowerCase();
+        if (t.includes("date")) {
+            return "GetDateTime";
+        }
+        if (t.includes("byte") || t.includes("int8") || t.includes("tinyint")) {
+            return "GetByte";
+        }
+        if (t.includes("smallint") || t.includes("int16") || t.includes("smallint")) {
+            return "GetInt16";
+        }
+        if (t.includes("int64") || t.includes("long") || t.includes("bigint")) {
+            return "GetInt64";
+        }
+        if (t.includes("int32") || t.includes("int") || t.includes("enum")) {
+            return "GetInt32"
+        }
+        if (t.includes("float64") || t.includes("double")) {
+            return "GetDouble";
+        }
+        if (t.includes("float32") || t.includes("float")) {
+            return "GetFloat";
+        }
+        if (t.includes("string") || t.includes("char") || t.includes("text")) {
+            return "GetString";
+        }
+    }
+    return t;
 };
