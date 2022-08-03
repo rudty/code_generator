@@ -6,6 +6,7 @@ const opt = require("./config.json");
  * csvDir: "."
  * 
  * database
+ * "host": "localhost",
  * "database" : "dbname",
  * "user": "username",
  * "password" : "password",
